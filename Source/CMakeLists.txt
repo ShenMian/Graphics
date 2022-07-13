@@ -33,7 +33,7 @@ if(NOT USE_CONAN)
     endif()
 
     # 添加 assimp
-    find_package(assimp CONFIG QUIET)
+    find_package(assimp QUIET)
     if(assimp_FOUND)
         list(APPEND LIBS assimp::assimp)
     else()
@@ -56,8 +56,9 @@ if(NOT USE_CONAN)
     else()
         set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build the GLFW documentation" FORCE)
         add_subdirectory("${DEPS_DIR}/glfw" "glfw3")
-        list(APPEND LIBS glfw)
+        # list(APPEND LIBS glfw)
     endif()
+    list(APPEND LIBS glfw_mt)
     list(APPEND INCS "${DEPS_DIR}/glfw/include")
 
     # 添加 meshoptimizer

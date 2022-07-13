@@ -12,16 +12,16 @@ conan install .. -s compiler.runtime=MDd --build=missing >nul
 popd
 
 echo Generating CMake cache...
-cmake -B build >nul || (
+cmake -B build -DUSE_CONAN=ON >nul || (
     echo Failed to generate CMake cache.
-    cmake -B build
+    cmake -B build -DUSE_CONAN=ON
     exit /b 1
 )
 
 echo Building...
 cmake --build build >nul || (
     echo Failed to build.
-    cmake --build build -j 8
+    cmake --build build -j16
     exit /b 1
 )
 

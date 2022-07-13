@@ -26,16 +26,19 @@ jobs:
         with:
           version: 13
 
+      - name: Install Conan
+        uses: turtlebrowser/get-conan@v1.0
+
       - name: Install dependencies
-        run: ./Scripts/cmake_install_deps.sh
+        run: |
+          export CONAN_SYSREQUIRES_MODE=enabled
+          conan install . --build=missing -if build -of build -s build_type=${{ matrix.type }} -s compiler=clang -s compiler.version=13
 
       - name: Generating CMake cache
-        run:  |
-          make clean
-          cmake -B build
+        run: cmake -B build -DUSE_CONAN=ON
 
       - name: Build
-        run: cmake --build build --config ${{ matrix.type }} -j8
+        run: cmake --build build --config ${{ matrix.type }} -j16
 
       - name: Upload libs
         uses: actions/upload-artifact@v3
@@ -46,5 +49,5 @@ jobs:
       - name: Upload bins
         uses: actions/upload-artifact@v3
         with:
-          name: examples-ubuntu-${{ matrix.arch }}
+          name: examples-ubuntu-${{ matrix.type }}-${{ matrix.arch }}
           path: build/bin/*/*

@@ -17,36 +17,20 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+          
+      - name: Install Conan
+        uses: turtlebrowser/get-conan@v1.0
 
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
-
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ github.workspace }}/vcpkg_installed
-            ${{ env.VCPKG_ROOT }}
-            !${{ env.VCPKG_ROOT }}/.git
-            !${{ env.VCPKG_ROOT }}/buildtrees
-            !${{ env.VCPKG_ROOT }}/packages
-            !${{ env.VCPKG_ROOT }}/downloads
-          key: macos-${{ matrix.type }}-${{ matrix.arch }}-${{ hashFiles('vcpkg.json') }}
-
-      # - name: Install dependencies
-      #   run: vcpkg install
-
-      - name: Cache
-        uses: actions/cache@v3
-        with:
-          path: ./build
-          key: macos-${{ matrix.type }}-${{ matrix.arch }}
+      - name: Install dependencies
+        run: |
+          export CONAN_SYSREQUIRES_MODE=enabled
+          conan install . --build=missing -if build -of build -s build_type=${{ matrix.type }} -s compiler=clang -s compiler.version=13
 
       - name: Generating CMake cache
-        run: cmake -B build
+        run: cmake -B build -DUSE_CONAN=ON
 
       - name: Build
-        run: cmake --build build --config ${{ matrix.type }} -j2
+        run: cmake --build build --config ${{ matrix.type }} -j16
 
       - name: Upload libs
         uses: actions/upload-artifact@v3
@@ -57,5 +41,5 @@ jobs:
       - name: Upload bins
         uses: actions/upload-artifact@v3
         with:
-          name: examples-macos-${{ matrix.arch }}
+          name: examples-macos-${{ matrix.type }}-${{ matrix.arch }}
           path: build/bin/*/*

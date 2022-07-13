@@ -8,6 +8,11 @@ jobs:
       matrix:
         arch: [x64] # arm64
         type: [Debug, Release]
+        include:
+          - type: Debug
+            vs_args: MTd
+          - type: Release
+            vs_args: MT
 
     runs-on: windows-latest
     name: ${{ matrix.type }}-${{ matrix.arch }}
@@ -29,14 +34,19 @@ jobs:
       #   with:
       #     version: 13
 
+      - name: Install Conan
+        uses: turtlebrowser/get-conan@v1.0
+
       - name: Install dependencies
-        run: ./Scripts/cmake_install_deps.bat
+        run: |
+          set CONAN_SYSREQUIRES_MODE=enabled
+          conan install . --build=missing -if build -of build -s build_type=${{ matrix.type }} -s compiler.runtime=${{ matrix.vs_args }}
 
       - name: Generating CMake cache
-        run: cmake -B build
+        run: cmake -B build -DUSE_CONAN=ON
 
       - name: Build
-        run: cmake --build build --config ${{ matrix.type }} -j8
+        run: cmake --build build --config ${{ matrix.type }} -j16
 
       - name: Upload libraries
         uses: actions/upload-artifact@v3
@@ -49,7 +59,7 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v3
         with:
-          name: examples-windows-${{ matrix.arch }}
+          name: examples-windows-${{ matrix.type }}-${{ matrix.arch }}
           path: |
             build/bin/**/*.exe
             build/bin/**/*.glsl

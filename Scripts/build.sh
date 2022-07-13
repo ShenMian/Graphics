@@ -13,10 +13,10 @@ conan install .. --build=missing >/dev/null
 cd ..
 
 echo Generating CMake cache...
-if ! cmake -B build >/dev/null
+if ! cmake -B build -DUSE_CONAN=ON >/dev/null
 then
     echo Failed to generate CMake cache.
-    cmake -B build
+    cmake -B build -DUSE_CONAN=ON
     exit 1
 fi
 
@@ -24,7 +24,7 @@ echo Building...
 if ! cmake --build build >/dev/null
 then
     echo Failed to build.
-    cmake --build build -j8
+    cmake --build build -j16
     exit 1
 fi
 
